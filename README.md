@@ -27,7 +27,7 @@
 - 在 EdgeOne控制台-Pages-KV存储 页面开启 KV 存储服务。
 
 ### 2. 开始部署
-[![使用国内版EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://console.cloud.tencent.com/edgeone/pages/new?repository-url=https://github.com/shing-yu/edge-link&env=ADMIN_PATH)
+[![使用国内版EdgeOne Pages 部署](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://console.cloud.tencent.com/edgeone/pages/new?repository-url=https://github.com/shing-yu/edge-link&env=ADMIN_PATH)  
 或 [使用国际版部署](https://edgeone.ai/pages/new?repository-url=https://github.com/shing-yu/edge-link&env=ADMIN_PATH)
 
 在部署页面配置环境变量 `ADMIN_PATH`，长度必须大于等于 64 个字符。  
