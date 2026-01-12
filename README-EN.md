@@ -52,8 +52,11 @@ Go to **Project Settings** -> **Environment Variables** to add or modify variabl
 | `SITE_TITLE` | No | Custom title for the homepage. |
 | `SITE_SUBTITLE` | No | Custom subtitle for the homepage. |
 
-### 5. Finalize
-Save your settings and redeploy the project.
+### 5. Redeploy
+Go to the **Build Deployment** page, and click More - Redeploy on the right side of the latest deployment record.
+
+### 6. Other Configurations
+Bind domain name, etc.
 
 ## 🛠 Usage
 
