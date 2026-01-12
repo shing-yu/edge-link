@@ -31,7 +31,7 @@
 或 [使用国际版部署](https://edgeone.ai/pages/new?repository-url=https://github.com/shing-yu/edge-link&env=ADMIN_PATH)
 
 在部署页面配置环境变量 `ADMIN_PATH`，长度必须大于等于 64 个字符。  
-可按需配置 `LANGUAGE`、`SITE_TITLE`、`SITE_SUBTITLE` 等环境变量。  
+可按需配置 `LANG`、`SITE_TITLE`、`SITE_SUBTITLE` 等环境变量。  
 
 构建设置保持默认，点击 **立即创建** 开始部署。
 
@@ -49,7 +49,7 @@
 | 变量名 | 是否必填 | 说明 |
 | :--- | :--- | :--- |
 | `ADMIN_PATH` | **是** | 管理后台的访问路径（不含 `/`）。**长度必须大于等于 64 个字符**。<br>示例：`super-long-secret-key-xyz-123...` |
-| `LANGUAGE` | 否 | 设置为 `zh` 显示中文，设置为 `en` 显示英文。默认为 `en`。 |
+| `LANG` | 否 | 设置为 `zh` 显示中文，设置为 `en` 显示英文。默认为 `en`。 |
 | `SITE_TITLE` | 否 | 自定义首页标题。 |
 | `SITE_SUBTITLE` | 否 | 自定义首页副标题。 |
 

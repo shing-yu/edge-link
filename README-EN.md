@@ -30,7 +30,7 @@ If this project helps you, please give it a Star 🌟!
 [![Deploy with EdgeOne Pages](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https://github.com/shing-yu/edge-link&env=ADMIN_PATH)
 
 On the deployment page, configure the `ADMIN_PATH` environment variable. **The length must be greater than or equal to 64 characters.**  
-Optionally configure `LANGUAGE`, `SITE_TITLE`, and `SITE_SUBTITLE`.
+Optionally configure `LANG`, `SITE_TITLE`, and `SITE_SUBTITLE`.
 
 Keep the build settings as default and click **Create** to start deployment.
 
@@ -48,7 +48,7 @@ Go to **Project Settings** -> **Environment Variables** to add or modify variabl
 | Variable Name | Required | Description |
 | :--- | :--- | :--- |
 | `ADMIN_PATH` | **Yes** | The access path for the admin dashboard (excluding `/`). **Must be >= 64 characters**. <br>Example: `super-long-secret-key-xyz-123...` |
-| `LANGUAGE` | No | Set to `en` for English, `zh` for Chinese. Defaults to `en`. |
+| `LANG` | No | Set to `en` for English, `zh` for Chinese. Defaults to `en`. |
 | `SITE_TITLE` | No | Custom title for the homepage. |
 | `SITE_SUBTITLE` | No | Custom subtitle for the homepage. |
 
