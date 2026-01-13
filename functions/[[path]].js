@@ -1,4 +1,5 @@
 // functions/[[path]].js
+// noinspection JSUnresolvedReference
 
 const MESSAGES = {
   en: {
@@ -11,6 +12,7 @@ const MESSAGES = {
     btnSave: "Save",
     thSlug: "Slug",
     thDest: "Destination",
+    thVisits: "Visits",
     thMode: "Mode",
     thAction: "Actions",
     loading: "Loading links...",
@@ -39,6 +41,7 @@ const MESSAGES = {
     btnSave: "保存配置",
     thSlug: "后缀路径",
     thDest: "目标地址",
+    thVisits: "访问次数",
     thMode: "跳转模式",
     thAction: "操作",
     loading: "正在加载数据...",
@@ -122,11 +125,23 @@ export async function onRequest(context) {
 
         if (action === "create" || action === "update") {
           if (!slug || !target) return new Response(JSON.stringify({ success: false, error: "Missing fields" }));
+          
+          // Preserve existing visits count if updating
+          let visits = 0;
+          try {
+            const existingRaw = await my_kv.get(slug);
+            if (existingRaw) {
+              const existing = JSON.parse(existingRaw);
+              visits = existing.visits || 0;
+            }
+          } catch (e) {}
+
           // 写入数据
           const data = {
             url: target,
             interstitial: !!interstitial,
-            updatedAt: Date.now()
+            updatedAt: Date.now(),
+            visits: visits
           };
           await my_kv.put(slug, JSON.stringify(data));
           return new Response(JSON.stringify({ success: true }));
@@ -154,6 +169,18 @@ export async function onRequest(context) {
     if (rawData) {
       const data = JSON.parse(rawData);
       
+      // Async visit counting
+      const countTask = async () => {
+        try {
+          data.visits = (data.visits || 0) + 1;
+          await my_kv.put(path, JSON.stringify(data));
+        } catch (e) {
+          console.error('Failed to update visits:', e);
+        }
+      };
+      if (context.waitUntil) context.waitUntil(countTask());
+      else countTask();
+
       // 如果开启了中间页
       if (data.interstitial) {
         return renderInterstitialPage(data.url, env, t, lang);
@@ -230,12 +257,13 @@ function renderAdminPage(env, t, lang) {
             <tr>
               <th class="px-6 py-4">${t.thSlug}</th>
               <th class="px-6 py-4">${t.thDest}</th>
+              <th class="px-6 py-4 text-center">${t.thVisits}</th>
               <th class="px-6 py-4 text-center">${t.thMode}</th>
               <th class="px-6 py-4 text-right">${t.thAction}</th>
             </tr>
           </thead>
           <tbody id="tableBody" class="divide-y divide-slate-700/50">
-            <tr><td colspan="4" class="px-6 py-8 text-center">${t.loading}</td></tr>
+            <tr><td colspan="5" class="px-6 py-8 text-center">${t.loading}</td></tr>
           </tbody>
         </table>
       </div>
@@ -266,7 +294,7 @@ function renderAdminPage(env, t, lang) {
       tbody.innerHTML = '';
       
       if (!json.success || json.data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">' + TXT.noLinks + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-slate-500">' + TXT.noLinks + '</td></tr>';
         return;
       }
 
@@ -282,6 +310,7 @@ function renderAdminPage(env, t, lang) {
             <a href="/\${item.slug}" target="_blank" class="text-blue-400 hover:underline">/\${item.slug}</a>
           </td>
           <td class="px-6 py-4 truncate max-w-xs" title="\${item.url}">\${item.url}</td>
+          <td class="px-6 py-4 text-center text-slate-400">\${item.visits || 0}</td>
           <td class="px-6 py-4 text-center">\${modeBadge}</td>
           <td class="px-6 py-4 text-right space-x-2">
             <button onclick="editLink('\${item.slug}', '\${item.url}', \${item.interstitial})" class="text-slate-400 hover:text-white transition-colors">${t.btnEdit}</button>
