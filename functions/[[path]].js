@@ -168,18 +168,10 @@ export async function onRequest(context) {
     
     if (rawData) {
       const data = JSON.parse(rawData);
-      
-      // Async visit counting
-      const countTask = async () => {
-        try {
-          data.visits = (data.visits || 0) + 1;
-          await my_kv.put(path, JSON.stringify(data));
-        } catch (e) {
-          console.error('Failed to update visits:', e);
-        }
-      };
-      if (context.waitUntil) context.waitUntil(countTask());
-      else countTask();
+
+      data.visits = (data.visits || 0) + 1;
+      await my_kv.put(path, JSON.stringify(data));
+
 
       // 如果开启了中间页
       if (data.interstitial) {
