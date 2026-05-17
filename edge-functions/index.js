@@ -30,7 +30,7 @@ export async function onRequest(context) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.title}</title>
   ${FAVICON_HTML}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="/style.css" rel="stylesheet">
   <style>body { font-family: system-ui, -apple-system, sans-serif; }</style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative overflow-hidden">

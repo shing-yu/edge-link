@@ -200,8 +200,7 @@ function renderAdminPage(env, t, lang) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.adminTitle}</title>
   ${FAVICON_HTML}
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' }</script>
+  <link href="/style.css" rel="stylesheet">
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen p-6 font-sans">
   <div class="max-w-4xl mx-auto">
@@ -360,7 +359,7 @@ function renderInterstitialPage(targetUrl, env, t, lang) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.interTitle}</title>
   ${FAVICON_HTML}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="/style.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
   <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 text-center">
@@ -398,7 +397,7 @@ function render404Page(env, t, lang) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${t.notFoundTitle}</title>
   ${FAVICON_HTML}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="/style.css" rel="stylesheet">
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
   <h1 class="text-9xl font-black text-gray-800 select-none">404</h1>
