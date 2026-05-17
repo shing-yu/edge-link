@@ -179,7 +179,7 @@ export async function onRequest(context) {
       }
       
       // 直接跳转
-      return Response.redirect(data.url, 302);
+        return Response.redirect(data.url, 307);  // 遵循 HTTP 标准，使用 307 Temporary Redirect 保持原请求方法（如 POST）
     }
   }
 
