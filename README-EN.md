@@ -13,9 +13,10 @@ If this project helps you, please give it a Star 🌟!
 
 - **Full Edge Execution**: Runs entirely on EdgeOne Functions with global acceleration.
 - **KV Storage**: Uses EdgeOne KV storage for mapping, ensuring extremely fast read speeds.
-- **Hidden Path Security**: Uses a "Security by Obscurity" approach via a super-long (64+ chars) random path for the admin dashboard. This eliminates complex login systems while maintaining security.
-- **No Build Required**: Written in vanilla JavaScript. The frontend uses Tailwind CSS via CDN—no `npm install` or build steps needed.
+- **Hidden Path Security**: Uses a "Security by Obscurity" approach via a super-long (64+ chars) random path for the admin dashboard. This eliminates complex login systems while maintaining security. 
+- **No Build Required**: Written in vanilla JavaScript. The frontend uses pre-compiled Tailwind CSS—no `npm install` or build steps needed.
 - **Interstitial Mode**: Supports a "Safe Interstitial Page" for specific links to warn users they are leaving the site.
+- **Custom Homepage**: By placing an `index.html` file in the `static` directory, you can customize the homepage.
 - **Multi-language Support**: Built-in English and Chinese support, switchable via environment variables.
 - **Dark Mode**: Features a modern dark UI design by default.
 
