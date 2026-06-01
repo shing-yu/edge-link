@@ -29,7 +29,8 @@ const MESSAGES = {
     btnCancel: "Cancel",
     notFoundTitle: "Link Not Found",
     notFoundMsg: "The short link you are looking for does not exist.",
-    btnHome: "Go Home"
+    btnHome: "Go Home",
+    btnLearn: "Learn about Project"
   },
   zh: {
     adminTitle: "短链接管理后台",
@@ -58,7 +59,8 @@ const MESSAGES = {
     btnCancel: "取消",
     notFoundTitle: "链接不存在",
     notFoundMsg: "您访问的短链接不存在或已被删除。",
-    btnHome: "返回首页"
+    btnHome: "访问首页",
+    btnLearn: "了解项目"
   }
 };
 
@@ -399,13 +401,42 @@ function render404Page(env, t, lang) {
   ${FAVICON_HTML}
   <link href="/style.css" rel="stylesheet">
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
-  <h1 class="text-9xl font-black text-gray-800 select-none">404</h1>
-  <div class="absolute text-center">
-    <h2 class="text-3xl font-bold mb-2 text-gray-100">${t.notFoundTitle}</h2>
-    <p class="text-gray-400 mb-6">${t.notFoundMsg}</p>
-    <a href="/" class="px-6 py-2 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-200 transition-colors">${t.btnHome}</a>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+  
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
   </div>
+
+  <main class="text-center px-4 z-10 flex flex-col items-center">
+    <div class="mb-6 flex justify-center">
+      <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-lg border border-white/10 shadow-xl">
+        <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+    </div>
+    
+    <h1 class="text-7xl md:text-9xl font-bold text-white mb-2 select-none tracking-tight">
+      404
+    </h1>
+    <h2 class="text-2xl md:text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 pb-1">${t.notFoundTitle}</h2>
+    <p class="text-gray-400 max-w-md mx-auto mb-10">${t.notFoundMsg}</p>
+    
+    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center mt-2 mx-auto">
+      <a href="/" class="w-full sm:w-auto min-w-[140px] bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-blue-900/50 text-center whitespace-nowrap">
+        ${t.btnHome}
+      </a>
+      <a href="https://github.com/shing-yu/edge-link" target="_blank" class="w-full sm:w-auto min-w-[140px] bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl backdrop-blur-sm border border-white/10 transition-all transform hover:scale-[1.02] shadow-lg text-center flex items-center justify-center gap-2 whitespace-nowrap">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
+        ${t.btnLearn}
+      </a>
+    </div>
+  </main>
+
+  <footer class="absolute bottom-6 w-full text-center text-gray-500 text-sm flex flex-col items-center gap-2">
+    <span>${t.powered}</span>
+  </footer>
 </body>
 </html>
   `;
