@@ -9,6 +9,11 @@ const MESSAGES = {
     labelSlug: "Slug (Short Path)",
     labelTarget: "Target URL",
     labelInterstitial: "Interstitial Page",
+    labelCode: "Extraction Code",
+    codeHint: "Optional. Only used when the interstitial page is enabled: the code is shown on that page and automatically copied when the visitor clicks Continue.",
+    codePlaceholder: "Optional",
+    btnCopy: "Copy",
+    copied: "Copied",
     btnSave: "Save",
     thSlug: "Slug",
     thDest: "Destination",
@@ -39,6 +44,11 @@ const MESSAGES = {
     labelSlug: "短链后缀 (Slug)",
     labelTarget: "目标跳转地址 (URL)",
     labelInterstitial: "启用中间页",
+    labelCode: "提取码",
+    codeHint: "选填。仅当开启中间页时生效：访客会在中间页看到该提取码，点击“继续访问”时自动复制，方便到目标页面使用。",
+    codePlaceholder: "选填",
+    btnCopy: "复制",
+    copied: "已复制",
     btnSave: "保存配置",
     thSlug: "后缀路径",
     thDest: "目标地址",
@@ -68,6 +78,19 @@ const FAVICON_HTML = `
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E">
 `;
 
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function jsString(value) {
+  return JSON.stringify(String(value == null ? '' : value)).replace(/</g, '\\u003c');
+}
+
 export async function onRequest(context) {
   const { request, env, params } = context;
   const url = new URL(request.url);
@@ -92,7 +115,7 @@ export async function onRequest(context) {
     if (request.method === "POST") {
       try {
         const body = await request.json();
-        const { action, slug, target, interstitial } = body;
+        const { action, slug, target, interstitial, code } = body;
 
         if (action === "list") {
           // 获取 KV 列表
@@ -130,18 +153,23 @@ export async function onRequest(context) {
           
           // Preserve existing visits count if updating
           let visits = 0;
+          let existing = null;
           try {
             const existingRaw = await my_kv.get(slug);
             if (existingRaw) {
-              const existing = JSON.parse(existingRaw);
+              existing = JSON.parse(existingRaw);
               visits = existing.visits || 0;
             }
           } catch (e) {}
+
+          // 兼容旧数据：仅当请求里显式传了 code 时才覆盖，否则保留已有提取码
+          const normalizedCode = typeof code === "string" ? code.trim() : (existing && existing.code) || "";
 
           // 写入数据
           const data = {
             url: target,
             interstitial: !!interstitial,
+            code: interstitial ? normalizedCode : "",
             updatedAt: Date.now(),
             visits: visits
           };
@@ -177,7 +205,7 @@ export async function onRequest(context) {
 
       // 如果开启了中间页
       if (data.interstitial) {
-        return renderInterstitialPage(data.url, env, t, lang);
+        return renderInterstitialPage(data.url, data.code || "", env, t, lang);
       }
       
       // 直接跳转
@@ -203,6 +231,43 @@ function renderAdminPage(env, t, lang) {
   <title>${t.adminTitle}</title>
   ${FAVICON_HTML}
   <link href="/style.css" rel="stylesheet">
+  <style>
+    #codeField {
+      grid-column: 1 / -1;
+    }
+    .code-tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .code-tip .code-tip-text {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: left;
+      font-weight: normal;
+      pointer-events: none;
+      transition: opacity .15s ease, visibility .15s ease;
+      z-index: 30;
+    }
+    .code-tip:hover .code-tip-text,
+    .code-tip:focus .code-tip-text,
+    .code-tip:focus-within .code-tip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen p-6 font-sans">
   <div class="max-w-4xl mx-auto">
@@ -238,6 +303,16 @@ function renderAdminPage(env, t, lang) {
         </div>
         <div class="md:col-span-2">
           <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition-colors shadow-lg text-sm">${t.btnSave}</button>
+        </div>
+        <div id="codeField" style="display:none;">
+          <label class="block text-xs font-medium text-slate-400 mb-1 flex items-center gap-2">
+            <span>${t.labelCode}</span>
+            <span class="code-tip" tabindex="0">
+              <svg class="w-4 h-4 text-slate-500 hover:text-white transition-colors cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="code-tip-text">${t.codeHint}</span>
+            </span>
+          </label>
+          <input type="text" id="inpCode" maxlength="64" placeholder="${t.codePlaceholder}" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 outline-none transition">
         </div>
       </form>
     </div>
@@ -280,6 +355,18 @@ function renderAdminPage(env, t, lang) {
       confirmDel: "${t.confirmDel}"
     };
 
+    function jsStr(s) {
+      return JSON.stringify(String(s == null ? '' : s))
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+    }
+
+    function syncCodeField() {
+      var on = document.getElementById('inpInterstitial').checked;
+      document.getElementById('codeField').style.display = on ? '' : 'none';
+    }
+
     async function loadLinks() {
       const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'list' }) });
       const json = await res.json();
@@ -306,8 +393,8 @@ function renderAdminPage(env, t, lang) {
           <td class="px-6 py-4 text-center text-slate-400">\${item.visits || 0}</td>
           <td class="px-6 py-4 text-center">\${modeBadge}</td>
           <td class="px-6 py-4 text-right space-x-2">
-            <button onclick="editLink('\${item.slug}', '\${item.url}', \${item.interstitial})" class="text-slate-400 hover:text-white transition-colors">${t.btnEdit}</button>
-            <button onclick="deleteLink('\${item.slug}')" class="text-red-400 hover:text-red-300 transition-colors">${t.btnDelete}</button>
+            <button onclick="editLink(\${jsStr(item.slug)}, \${jsStr(item.url)}, \${item.interstitial}, \${jsStr(item.code)})" class="text-slate-400 hover:text-white transition-colors">${t.btnEdit}</button>
+            <button onclick="deleteLink(\${jsStr(item.slug)})" class="text-red-400 hover:text-red-300 transition-colors">${t.btnDelete}</button>
           </td>
         \`;
         tbody.appendChild(tr);
@@ -319,13 +406,15 @@ function renderAdminPage(env, t, lang) {
       const slug = document.getElementById('inpSlug').value;
       const target = document.getElementById('inpUrl').value;
       const interstitial = document.getElementById('inpInterstitial').checked;
+      const code = document.getElementById('inpCode').value;
       
       const res = await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: 'create', slug, target, interstitial })
+        body: JSON.stringify({ action: 'create', slug, target, interstitial, code })
       });
       if(res.ok) {
         document.getElementById('linkForm').reset();
+        syncCodeField();
         loadLinks();
       } else { alert('Error saving'); }
     }
@@ -336,14 +425,18 @@ function renderAdminPage(env, t, lang) {
       loadLinks();
     }
 
-    window.editLink = function(slug, url, interstitial) {
+    window.editLink = function(slug, url, interstitial, code) {
       document.getElementById('inpSlug').value = slug;
       document.getElementById('inpUrl').value = url;
       document.getElementById('inpInterstitial').checked = interstitial;
+      document.getElementById('inpCode').value = code || '';
+      syncCodeField();
       document.getElementById('inpUrl').focus();
     }
 
+    document.getElementById('inpInterstitial').addEventListener('change', syncCodeField);
     document.getElementById('linkForm').addEventListener('submit', saveLink);
+    syncCodeField();
     loadLinks();
   </script>
 </body>
@@ -352,7 +445,18 @@ function renderAdminPage(env, t, lang) {
   return new Response(html, { headers: { "content-type": "text/html;charset=UTF-8" } });
 }
 
-function renderInterstitialPage(targetUrl, env, t, lang) {
+function renderInterstitialPage(targetUrl, code, env, t, lang) {
+  const hasCode = !!code;
+  const codeHtml = hasCode ? `
+    <div class="code-box">
+      <div class="code-box-label">${t.labelCode}</div>
+      <div class="code-box-value">
+        <span id="codeText" class="code-box-code" title="${escapeHtml(code)}">${escapeHtml(code)}</span>
+        <button type="button" id="copyCodeBtn" class="code-copy-btn">${t.btnCopy}</button>
+      </div>
+    </div>
+  ` : '';
+
   const html = `
 <!DOCTYPE html>
 <html lang="${lang}">
@@ -362,6 +466,54 @@ function renderInterstitialPage(targetUrl, env, t, lang) {
   <title>${t.interTitle}</title>
   ${FAVICON_HTML}
   <link href="/style.css" rel="stylesheet">
+  <style>
+    .code-box {
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #374151;
+      border-radius: 0.75rem;
+      background: rgba(55, 65, 81, 0.35);
+      text-align: left;
+    }
+    .code-box-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 0.375rem;
+    }
+    .code-box-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .code-box-code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.875rem;
+      color: #60a5fa;
+      word-break: break-all;
+      user-select: all;
+      cursor: pointer;
+    }
+    .code-box-code:hover {
+      color: #93c5fd;
+    }
+    .code-copy-btn {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid #4b5563;
+      border-radius: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      cursor: pointer;
+      transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+    }
+    .code-copy-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.16);
+      border-color: #6b7280;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
   <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 text-center">
@@ -371,7 +523,9 @@ function renderInterstitialPage(targetUrl, env, t, lang) {
     <h1 class="text-2xl font-bold mb-2">${t.interTitle}</h1>
     <p class="text-gray-400 mb-8 text-sm">${t.interMsg}<br><span class="text-blue-400 break-all">${targetUrl}</span></p>
     
-    <a href="${targetUrl}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-blue-900/50 mb-4">
+    ${codeHtml}
+    
+    <a id="btnContinue" href="${targetUrl}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-blue-900/50 mb-4">
       ${t.btnContinue}
     </a>
     <!-- <button onclick="history.back()" class="text-gray-500 hover:text-white text-sm transition-colors">${t.btnCancel}</button> -->
@@ -384,6 +538,60 @@ function renderInterstitialPage(targetUrl, env, t, lang) {
     </div>
     <span>${t.powered}</span>
   </footer>
+
+  <script>
+    (function() {
+      var code = ${jsString(code)};
+      var copyBtn = document.getElementById('copyCodeBtn');
+      var codeText = document.getElementById('codeText');
+      var continueBtn = document.getElementById('btnContinue');
+
+      function copyText(text) {
+        var done = false;
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        try { done = document.execCommand('copy'); } catch (e) { done = false; }
+        document.body.removeChild(ta);
+        if (!done && navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).catch(function() {});
+        }
+        return done;
+      }
+
+      function flashCopy() {
+        if (!copyBtn) return;
+        copyBtn.textContent = ${jsString(t.copied)};
+        setTimeout(function() { copyBtn.textContent = ${jsString(t.btnCopy)}; }, 1500);
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          copyText(code);
+          flashCopy();
+        });
+      }
+      if (codeText) {
+        codeText.addEventListener('click', function() {
+          copyText(code);
+          flashCopy();
+        });
+      }
+      if (continueBtn && code) {
+        continueBtn.addEventListener('click', function() {
+          copyText(code);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
   `;
